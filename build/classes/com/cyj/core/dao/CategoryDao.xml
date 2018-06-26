@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cyj.core.dao.CategoryDao">
+
+<resultMap type="com.cyj.core.po.Category" id="resultMap">
+<id property="id" column="id"/>
+<result property="turn" column="turn"/>
+<result property="en_name" column="en_name"/>
+<result property="name" column="name"/>
+<result property="description" column="description"/>
+<result property="parent_id" column="parent_id"/>
+</resultMap>
+
+<resultMap type="com.cyj.core.po.Category" id="resultMap2">
+<id property="id" column="id"/>
+<result property="turn" column="turn"/>
+<result property="en_name" column="en_name"/>
+<result property="name" column="name"/>
+<result property="description" column="description"/>
+<result property="parent_id" column="parent_id"/>
+<result property="pnum" column="pnum"/>
+</resultMap>
+
+<!-- findAll  "select * from d_category" -->
+<select id="findAll" resultMap="resultMap">
+select * from d_category
+</select>
+
+<!--  FIND_BY_PARENT_ID = "select dc.*,count(dcp.product_id) as pnum "
+			+ "from d_category dc left outer join d_category_product dcp "
+			+ "on dc.id=dcp.cat_id "
+			+ "where dc.parent_id=? "
+			+ "group by dc.id"; -->
+<select id="findByParentId" resultMap="resultMap2" parameterType="int">
+select dc.*,count(dcp.product_id) as pnum from d_category dc left outer join d_category_product dcp 
+on dc.id=dcp.cat_id where dc.parent_id=#{parent_id} group by dc.id
+</select>
+</mapper>

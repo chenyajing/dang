@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cyj.core.dao.BookDao">
+<resultMap type="com.cyj.core.po.Book" id="resultMap">
+<id property="id" column="id"/>
+<result property="author" column="author"/>
+<result property="publishing" column="publishing"/>
+<result property="publish_time" column="publish_time"/>
+<result property="word_number" column="word_number"/>
+<result property="which_edtion" column="which_edtion"/>
+<result property="total_page" column="total_page"/>
+<result property="print_time" column="print_time"/>
+<result property="print_number" column="print_number"/>
+<result property="isbn" column="isbn"/>
+<result property="author_summary" column="author_summary"/>
+<result property="catalogue" column="catalogue"/>
+<!-- 一对一 ：association -->
+<association property="product" javaType="com.cyj.core.po.Product">
+<id property="id" column="pid"/>
+<result property="product_name" column="product_name"/>
+<result property="description" column="description"/>
+<result property="add_time" column="add_time"/>
+<result property="fixed_price" column="fixed_price"/>
+<result property="dang_price" column="dang_price"/>
+<result property="keywords" column="keywords"/>
+<result property="has_deleted" column="has_deleted"/>
+<result property="product_pic" column="product_pic"/>
+</association>
+</resultMap>
+
+<!-- findByCatId 
+"select dp.*,db.*
+from d_category_product dcp
+join d_product dp on (dcp.product_id=dp.id)
+join d_book db on (dp.id=db.id)
+where dcp.cat_id=? limit ?,?"
+ -->
+<sql id="product_field">
+p.id as pid,p.product_name,p.description,p.add_time,p.fixed_price,p.dang_price,p.keywords,p.has_deleted,p.product_pic
+</sql>
+<select id="findByCatId" resultMap="resultMap" parameterType="int">
+select <include refid="product_field"/>,db.*
+from d_category_product dcp join d_product p on (dcp.product_id=p.id) 
+join d_book db on (pid=db.id) where dcp.cat_id=#{cid} limit #{begin},#{size}
+</select>
+
+<!-- findById 
+"select p.*,b.*
+from d_product p 
+join d_book b 
+on p.id=b.id
+where p.id=?" -->
+<select id="findById" resultMap="resultMap" parameterType="int">
+select <include refid="product_field"/>,b.* from d_product p join d_book b on (p.id=b.id) where p.id=#{id}
+</select>
+<!-- findByHot 
+"select sum(product_num) as num,p.*,b.*
+from d_item i
+join d_product p
+ON i.product_id=p.id
+JOIN d_book b
+ON i.product_id=b.id
+GROUP BY product_id 
+ORDER BY num desc LIMIT 0,?"
+-->
+<select id="findByHot" resultMap="resultMap" parameterType="int">
+select sum(product_num) as num,<include refid="product_field"/>,b.*
+from d_item i
+join d_product p 
+ON (i.product_id=p.id)
+JOIN d_book b 
+ON (i.product_id=b.id)
+GROUP BY product_id 
+ORDER BY num desc LIMIT 0,#{num}
+</select>
+<!-- findByNew
+"SELECT p.*,b.*
+FROM d_product p 
+JOIN d_book b 
+ON p.id=b.id
+ORDER BY p.add_time DESC 
+LIMIT 0,?"  -->
+<select id="findByNew" resultMap="resultMap" parameterType="int">
+SELECT <include refid="product_field"/>,b.*
+FROM d_product p  
+JOIN d_book b  
+ON (p.id=b.id)
+ORDER BY p.add_time DESC  LIMIT 0,#{num}
+</select>			
+<!-- findByNewHot
+"select sum(product_num) as num,p.*,b.*
+from d_item i
+join d_product p
+ON i.product_id=p.id
+JOIN d_book b
+ON i.product_id=b.id
+WHERE p.add_time>?
+GROUP BY product_id
+ORDER BY num desc LIMIT 0,?"
+ -->
+<select id="findByNewHot" resultMap="resultMap" parameterType="long">
+select sum(product_num) as num,<include refid="product_field"/>,b.*
+from d_item i 
+join d_product p 
+ON (i.product_id=p.id )
+JOIN d_book b 
+ON (i.product_id=b.id) 
+WHERE p.add_time>#{time}
+GROUP BY product_id 
+ORDER BY num desc LIMIT 0,4
+</select>
+</mapper>
